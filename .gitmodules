@@ -1,0 +1,6 @@
+[submodule "lib/rain.vats"]
+	path = lib/rain.vats
+	url = https://github.com/rainlanguage/rain.vats.git
+[submodule "lib/rain.orderbook"]
+	path = lib/rain.orderbook
+	url = https://github.com/rainlanguage/rain.orderbook.git

@@ -9,6 +9,9 @@ pub struct Config {
     pub rate_limit_global_rpm: u64,
     pub rate_limit_per_key_rpm: u64,
     pub docs_dir: String,
+    /// Optional Hypersync API key for 8453.hypersync.xyz (Bearer token). Can also set HYPERSYNC_API_KEY env var.
+    #[serde(default)]
+    pub hypersync_api_key: Option<String>,
 }
 
 impl Config {

@@ -5,3 +5,5 @@ rate_limit_global_rpm = 600
 rate_limit_per_key_rpm = 60
 docs_dir = "./docs/book"
 local_db_path = "data/raindex.db"
+# Optional: Hypersync API key for 8453.hypersync.xyz (Bearer). Or set HYPERSYNC_API_KEY env var.
+hypersync_api_key = "afeb75aa-8fda-4446-a3e4-7112a7fb08b6"

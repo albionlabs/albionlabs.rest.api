@@ -53,12 +53,24 @@ enum StartupError {
     paths(
         routes::health::get_health,
         routes::tokens::get_tokens,
+        routes::mint::post_mint,
+        routes::schemas::post_schemas,
+        routes::metadata::post_receipt_metadata,
     ),
-    components(),
+    components(schemas(
+        crate::types::schemas::GetSchemasRequest,
+        crate::types::schemas::SchemaQueryResponse,
+        crate::types::schemas::GetReceiptMetadataRequest,
+        crate::types::schemas::ReceiptMetadataResponse,
+        crate::types::schemas::MetaV1Row,
+    )),
     modifiers(&SecurityAddon),
     tags(
         (name = "Health", description = "Health check endpoints"),
         (name = "Tokens", description = "Token information endpoints"),
+        (name = "Mint", description = "Mint transaction endpoints"),
+        (name = "Schemas", description = "Offchain asset receipt vault schema endpoints"),
+        (name = "Metadata", description = "Metadata subgraph and receipt decoding"),
     ),
     info(
         title = "Albion REST API",
@@ -98,6 +110,7 @@ pub(crate) fn rocket(
     rate_limiter: fairings::RateLimiter,
     raindex_config: raindex::SharedRaindexProvider,
     docs_dir: String,
+    hypersync_api_key: Option<String>,
 ) -> Result<rocket::Rocket<rocket::Build>, StartupError> {
     let cors = configure_cors()?;
 
@@ -105,12 +118,19 @@ pub(crate) fn rocket(
 
     let options = Options::Index | Options::NormalizeDirs;
 
+    let claims_client = routes::claims::ClaimsClient::new(hypersync_api_key);
+
     Ok(rocket::custom(figment)
         .manage(pool)
         .manage(rate_limiter)
         .manage(raindex_config)
+        .manage(claims_client)
         .mount("/", routes::health::routes())
         .mount("/v1/tokens", routes::tokens::routes())
+        .mount("/v1/mint", routes::mint::routes())
+        .mount("/v1/schemas", routes::schemas::routes())
+        .mount("/v1/metadata", routes::metadata::routes())
+        .mount("/v1/claims", routes::claims::routes())
         .mount("/docs", FileServer::new(docs_dir, options))
         .mount(
             "/",
@@ -121,6 +141,8 @@ pub(crate) fn rocket(
         .attach(fairings::UsageLogger)
         .attach(fairings::RateLimitHeadersFairing)
         .attach(routes::tokens::fairing())
+        .attach(routes::schemas::fairing())
+        .attach(routes::metadata::fairing())
         .attach(cors))
 }
 
@@ -223,7 +245,17 @@ async fn main() {
             }
             tracing::info!(docs_dir = %cfg.docs_dir, "serving documentation at /docs");
 
-            let rocket = match rocket(pool, rate_limiter, shared_raindex, cfg.docs_dir) {
+            let hypersync_api_key = cfg
+                .hypersync_api_key
+                .clone()
+                .or_else(|| std::env::var("HYPERSYNC_API_KEY").ok());
+            let rocket = match rocket(
+                pool,
+                rate_limiter,
+                shared_raindex,
+                cfg.docs_dir,
+                hypersync_api_key,
+            ) {
                 Ok(r) => r,
                 Err(e) => {
                     tracing::error!(error = %e, "failed to build Rocket instance");

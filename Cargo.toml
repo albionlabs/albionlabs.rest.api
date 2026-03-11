@@ -18,6 +18,9 @@ utoipa = { version = "5", features = ["rocket_extras"] }
 utoipa-swagger-ui = { version = "9", features = ["rocket"] }
 tokio = { version = "1", features = ["full"] }
 alloy = { version = "=1.0.9", default-features = false, features = ["std", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+k256 = { version = "0.13", features = ["ecdsa"] }
+hex = "0.4"
 async-trait = "0.1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
@@ -30,6 +33,9 @@ base64 = "0.22.1"
 clap = { version = "4.5.58", features = ["derive"] }
 toml = "0.8"
 reqwest = { version = "0.13.2", features = ["json"] }
+rain-metadata = { path = "lib/rain.orderbook/lib/rain.interpreter/lib/rain.metadata/crates/cli", default-features = false }
+serde_bytes = "0.11"
+serde_cbor = "0.11"
 # Path deps (uncomment when lib/ is present):
 # rain_orderbook_js_api = { path = "lib/rain.orderbook/crates/js_api", default-features = false }
 # rain_orderbook_common = { path = "lib/rain.orderbook/crates/common", default-features = false }
